@@ -217,10 +217,24 @@
     " UNIQUE( id ) );"                                                  \
     "CREATE INDEX IF NOT EXISTS idx_sieve_name ON sieve_scripts ( name );"
 
+#define CMD_CREATE_PUSHSUB                                              \
+    "CREATE TABLE IF NOT EXISTS push_subscriptions ("                   \
+    " rowid INTEGER PRIMARY KEY,"                                       \
+    " mailbox TEXT NOT NULL,"                                           \
+    " imap_uid INTEGER,"                                                \
+    " id TEXT NOT NULL,"                                                \
+    " subscription TEXT NOT NULL,"                                      \
+    " expires INTEGER,"                                                 \
+    " isverified INTEGER,"                                              \
+    " alive INTEGER,"                                                   \
+    " UNIQUE( mailbox, imap_uid ),"                                     \
+    " UNIQUE( id ) );"
+
 
 #define CMD_CREATE CMD_CREATE_CAL CMD_CREATE_CARD CMD_CREATE_EM CMD_CREATE_GR \
                    CMD_CREATE_OBJS CMD_CREATE_CALCACHE CMD_CREATE_CARDCACHE   \
-                   CMD_CREATE_SIEVE CMD_CREATE_JSCALOBJS CMD_CREATE_JSCALCACHE
+                   CMD_CREATE_SIEVE CMD_CREATE_JSCALOBJS CMD_CREATE_JSCALCACHE \
+                   CMD_CREATE_PUSHSUB
 
 /* leaves these unused columns around, but that's life.  A dav_reconstruct
  * will fix them */
@@ -273,6 +287,8 @@
     "INSERT INTO jscal_objs" \
     " SELECT rowid, '', modseq, createdmodseq, dtstart, dtend, alive, '' FROM ical_objs;"
 
+#define CMD_DBUPGRADEv16 CMD_CREATE_PUSHSUB
+
 static int sievedb_upgrade(sqldb_t *db);
 
 struct sqldb_upgrade davdb_upgrade[] = {
@@ -290,10 +306,11 @@ struct sqldb_upgrade davdb_upgrade[] = {
   /* Don't upgrade to version 13.  This was an intermediate Sieve DB version */
   { 14, CMD_DBUPGRADEv14, &sievedb_upgrade },
   { 15, CMD_DBUPGRADEv15, NULL },
+  { 16, CMD_DBUPGRADEv16, NULL },
   { 0, NULL, NULL }
 };
 
-#define DB_VERSION 15
+#define DB_VERSION 16
 
 static sqldb_t *reconstruct_db;
 
@@ -407,6 +424,10 @@ static int _dav_reconstruct_mb(const mbentry_t *mbentry,
 #ifdef WITH_JMAP
     case MBTYPE_JMAPSUBMIT:
         addproc = &mailbox_add_email_alarms;
+        break;
+
+    case MBTYPE_JMAPPUSHSUB:
+        addproc = &mailbox_add_pushsub;
         break;
 
     case MBTYPE_EMAIL:
