@@ -182,6 +182,7 @@ extern const char *config_backup_db;
 extern int charset_flags;
 extern int charset_snippet_flags;
 extern size_t config_search_maxsize;
+extern int expect_proxy_protocol;
 
 /* Session ID */
 extern void session_new_id(void);
