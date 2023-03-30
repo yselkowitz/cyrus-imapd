@@ -1342,13 +1342,12 @@ void sched_deliver(const char *userid, const char *sender, const char *recipient
         r = sched_deliver_local(userid, sender, recipient, NULL, &sparam, sched_data,
                                 authstate, &attendee, &ical);
 
-        /* XXX  Should this be a config option? - it might have perf implications */
         if (r == 1 && SCHED_IS_REPLY(sched_data)) {
             /* Send updates to attendees - skipping sender of reply */
             icalcomponent *comp = icalcomponent_get_first_real_component(ical);
             if (icalcomponent_isa(comp) == ICAL_VPOLL_COMPONENT)
                 sched_pollstatus(recipient, &sparam, ical, attendee);
-            else
+            else if (config_getswitch(IMAPOPT_CALDAV_SEND_PARTSTAT_UPDATES))
                 sched_request(userid, NULL, recipient, NULL, ical); // oldical?
         }
         if (ical) icalcomponent_free(ical);

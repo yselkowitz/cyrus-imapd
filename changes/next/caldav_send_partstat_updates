@@ -1,0 +1,18 @@
+
+Description:
+
+Allow control over whether updates are sent when an attendee changes
+their participantion status.
+
+
+Config changes:
+
+Added 'caldav_send_partstat_updates' switch
+
+
+Upgrade instructions:
+
+Sending of updates when an attendee changes their participantion
+status is now disabled by default.
+Enable the 'caldav_send_partstat_updates' config switch to restore the
+previous behavior.
