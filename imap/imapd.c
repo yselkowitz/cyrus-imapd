@@ -8031,8 +8031,11 @@ static int renmbox(const mbentry_t *mbentry, void *rock)
         mboxname_to_external(text->newmailboxname, &imapd_namespace, imapd_userid);
 
     if(r) {
-        prot_printf(imapd_out, "* NO rename %s %s: %s\r\n",
-                    oldextname, newextname, error_message(r));
+        prot_printf(imapd_out, "* NO rename ");
+        prot_printastring(imapd_out, oldextname);
+        prot_printf(imapd_out, " ");
+        prot_printastring(imapd_out, newextname);
+        prot_printf(imapd_out, ": %s\r\n", error_message(r));
         if (!RENAME_STOP_ON_ERROR) r = 0;
     } else {
         /* If we're renaming a user, change quotaroot and ACL */
@@ -8043,8 +8046,11 @@ static int renmbox(const mbentry_t *mbentry, void *rock)
         }
 
         // non-standard output item, but it helps give progress
-        prot_printf(imapd_out, "* OK rename %s %s\r\n",
-                    oldextname, newextname);
+        prot_printf(imapd_out, "* OK rename ");
+        prot_printastring(imapd_out, oldextname);
+        prot_printf(imapd_out, " ");
+        prot_printastring(imapd_out, newextname);
+        prot_printf(imapd_out, "\r\n");
     }
 
 done:
